@@ -115,10 +115,6 @@ public: // 静的メンバ関数
 	/// </summary>
 	static void StaticFinalize();
 
-	// 四角形モデルの生成
-	static Model2* CreateSquare(int max);
-
-
 	/// <summary>
 	/// 3Dモデル生成
 	/// </summary>
@@ -151,6 +147,20 @@ public: // 静的メンバ関数
 	/// 描画後処理
 	/// </summary>
 	static void PostDraw();
+
+	/// <summary>
+	/// 四角形モデルの生成
+	/// </summary>
+	/// <param name="max">個数</param>
+	/// <returns></returns>
+	static Model2* CreateSquare(int max);
+
+	/// <summary>
+	/// リングモデルの生成
+	/// </summary>
+	/// <param name="divide">分割</param>
+	/// <returns></returns>
+	static Model2* CreateRing(int divide);
 
 public: // メンバ関数
 	~Model2() = default;

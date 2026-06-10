@@ -1,14 +1,14 @@
 #pragma once
+
 #include "KamataEngine.h"
 #include "Model2.h"
 
-using namespace KamataEngine;
-
 // ゲームシーン
 class GameScene {
-
-	public:
-	GameScene();
+public:
+	/// <summary>
+	/// デストラクタ
+	/// </summary>
 	~GameScene();
 
 	// 初期化
@@ -22,13 +22,11 @@ class GameScene {
 
 private:
 	// カメラ
-	Camera camera_;
-	
+	KamataEngine::Camera camera_;
 	// テクスチャハンドル
 	uint32_t textureHandle_ = 0;
-
-	Model2* model2 = nullptr;
-
+	// 四角形
+	KamataEngine::Model2* modelSquare_ = nullptr;
 	// ワールド変換データ
-	WorldTransform worldTransform_;
+	KamataEngine::WorldTransform worldTransform_;
 };
