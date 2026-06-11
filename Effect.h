@@ -39,4 +39,8 @@ private:
 	ObjectColor objectColor_;
 	// 色の数値
 	Vector4 color_ = {};
+
+	// オリジナル要素
+	Vector3 velocity_ = {};
+
 };

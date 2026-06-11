@@ -21,6 +21,13 @@ void Effect::Initialize(Model* model, float rotate, float size, Vector3 position
 
 	objectColor_.Initialize();
 	color_ = {color.x, color.y, color.z, 1};
+
+	worldTransform_.translation_ = position;
+
+	velocity_.x = (rand() % 100 - 50) / 500.0f;
+	velocity_.y = (rand() % 100) / 200.0f;
+	velocity_.z = 0.0f;
+
 }
 
 void Effect::Update() {
@@ -40,6 +47,15 @@ void Effect::Update() {
 	}
 
 	worldTransform_.rotation_.y = 3.14f;
+
+
+	// 重力
+	velocity_.y -= 0.03f;
+
+	// 移動
+	worldTransform_.translation_.x += velocity_.x;
+	worldTransform_.translation_.y += velocity_.y;
+	worldTransform_.translation_.z += velocity_.z;
 
 	// 色変更オブジェクトに色の数値を設定する
 	color_.w = std::clamp(1.0f - counter_ / kDuration, 0.0f, 1.0f);
