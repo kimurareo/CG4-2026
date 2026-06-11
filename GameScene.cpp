@@ -1,48 +1,85 @@
 #include "GameScene.h"
+#include <random>
 
 using namespace KamataEngine;
+using namespace MathUtility;
+
+std::random_device seedGenerator;
+std::mt19937 randomEngine(seedGenerator());
+std::uniform_real_distribution<float> distribution(-1.0f, 1.0f);
 
 // デストラクタ
 GameScene::~GameScene() {
-	// 3Dモデルデータの解放
-	delete modelSquare_;
-
-	Model2::StaticFinalize();
+	// エフェクト
+	for (Effect* effect : effects_) {
+		delete effect;
+	}
+	effects_.clear();
 }
 
 // 初期化
 void GameScene::Initialize() {
-	Model2::StaticInitialize();
+	// 乱数の初期化
+	srand((unsigned)time(NULL));
+
+	// 3Dモデルデータ生成
+	modelEffect_ = Model::CreateFromOBJ("plane");
+
 	// カメラの初期化
 	camera_.Initialize();
-	// ファイル名を指定してテクスチャを読み込む
-	textureHandle_ = TextureManager::Load("uvChecker.png");
-	// textureHandle_ = TextureManager::Load("box.png");
-	//  ワールド変換の初期化
-	worldTransform_.Initialize();
-	worldTransform_.scale_ = {2, 2, 2};
-	// 3Dモデルデータの生成
-	modelSquare_ = Model2::CreateRing(20);
-	// modelSquare_ = Model2::CreateSquare(1);
 }
 
 // 更新
 void GameScene::Update() {
-	// 3Dモデルを更新
-	worldTransform_.UpdateMatrix();
+	// エフェクト発生
+	if (rand() % 5 == 0) {
+		Vector3 position = {distribution(randomEngine), distribution(randomEngine), 0};
+		position *= 10;
+		EffectBorn(position);
+	}
+
+	// エフェクト更新
+	// effect_->Update();
+	for (Effect* effect : effects_) {
+		effect->Update();
+	}
+
+	// デスフラグの立ったエフェクトを削除
+	effects_.remove_if([](Effect* effect) {
+		if (effect->IsFinished()) {
+			delete effect;
+			return true;
+		}
+		return false;
+	});
 }
 
 // 描画
 void GameScene::Draw() {
 	// DirectXCommon インスタンスの取得
-	DirectXCommon* dxCommon = DirectXCommon::GetInstance();
+	//	DirectXCommon* dxCommon = DirectXCommon::GetInstance();
 
 	// 3Dモデル描画前処理
-	Model2::PreDraw(dxCommon->GetCommandList());
+	//	Model::PreDraw(dxCommon->GetCommandList());
+	Model::PreDraw(); // 仕様変更
 
-	// 3Dモデルを描画
-	modelSquare_->Draw(worldTransform_, camera_, textureHandle_);
+	// エフェクト描画
+	for (Effect* effect : effects_) {
+		effect->Draw(camera_);
+	}
 
 	// 3Dモデル描画後処理
-	Model2::PostDraw();
+	Model::PostDraw();
+}
+
+// エフェクト発生
+void GameScene::EffectBorn(Vector3 position) {
+	Vector3 color = {abs(distribution(randomEngine)), abs(distribution(randomEngine)), abs(distribution(randomEngine))};
+	for (int32_t i = 0; i < 15; i++) {
+		Effect* effect = new Effect();
+		float rotate = distribution(randomEngine) * 3.14f;
+		float size = 1.0f + abs(distribution(randomEngine)) * 4;
+		effect->Initialize(modelEffect_, rotate, size, position, color);
+		effects_.push_back(effect);
+	}
 }
