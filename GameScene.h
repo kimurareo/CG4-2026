@@ -1,9 +1,7 @@
 #pragma once
 
-#include "Effect.h"
 #include "KamataEngine.h"
-
-using namespace KamataEngine;
+#include "Particle.h"
 
 // ゲームシーン
 class GameScene {
@@ -29,15 +27,19 @@ public:
 	void Draw();
 
 private:
+	// パーティクル3Dモデルデータ
+	KamataEngine::Model* modelParticle_ = nullptr;
+
 	// カメラ
-	Camera camera_;
+	KamataEngine::Camera camera_;
 
-	// 3Dモデル エフェクト
-	Model* modelEffect_ = nullptr;
+	// パーティクル
+	Particle* particle_ = nullptr;
+	std::list<Particle*> particles_;
 
-	// エフェクト
-	std::list<Effect*> effects_;
-
-	// エフェクト発生
-	void EffectBorn(KamataEngine::Vector3 position);
+	/// <summary>
+	/// パーティクル発生
+	/// </summary>
+	/// <param name="position">位置</param>
+	void ParticleBorn(Vector3 position);
 };
