@@ -23,7 +23,7 @@ void GameScene::Initialize() {
 	worldTransform_.scale_ = {1, 1, 1};
 	// 3Dモデルデータの生成
 	//modelSquare_ = Model2::CreateRing(20);
-	 modelSquare_ = Model2::CreateSquare(1);
+	 modelSquare_ = Model2::CreateSquare(5);
 }
 
 // 更新
