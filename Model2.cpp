@@ -152,20 +152,23 @@ Model2* Model2::CreateSquare(int max) {
 
 	for (int i = 0; i < max; i++) {
 		int index = i * 4;
-		// 左下
-		vertices[index + 0].pos = {i * 2 + -1.0f, -1.0f, 0.0f};
+		// 左下 (-1.0f, -1.0f)
+		vertices[index + 0].pos = {i * 2.0f - 1.0f, -1.0f, 0.0f};
 		vertices[index + 0].uv = {0, 1};
 		vertices[index + 0].normal = {0, 0, 1};
-		// 左上
-		vertices[index + 1].pos = {i * 2 + -2.0f, 1.0f, 0.0f};
+
+		// 左上 (-1.0f, 1.0f) ← 【修正】 -2.0f から -1.0f に変更
+		vertices[index + 1].pos = {i * 2.0f - 1.0f, 1.0f, 0.0f};
 		vertices[index + 1].uv = {0, 0};
 		vertices[index + 1].normal = {0, 0, 1};
-		// 右下
-		vertices[index + 2].pos = {i * 2 + 1.0f, -1.0f, 0.0f};
+
+		// 右下 (1.0f, -1.0f)
+		vertices[index + 2].pos = {i * 2.0f + 1.0f, -1.0f, 0.0f};
 		vertices[index + 2].uv = {1, 1};
 		vertices[index + 2].normal = {0, 0, 1};
-		// 右上
-		vertices[index + 3].pos = {i * 2 + 2.0f, 1.0f, 0.0f};
+
+		// 右上 (1.0f, 1.0f)  ← 【修正】 2.0f から 1.0f に変更
+		vertices[index + 3].pos = {i * 2.0f + 1.0f, 1.0f, 0.0f};
 		vertices[index + 3].uv = {1, 0};
 		vertices[index + 3].normal = {0, 0, 1};
 	}
