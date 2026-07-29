@@ -3,6 +3,8 @@
 #include "KamataEngine.h"
 #include "Model2.h"
 
+#include "effect.h"
+
 // ゲームシーン
 class GameScene {
 public:
@@ -29,4 +31,10 @@ private:
 	KamataEngine::Model2* modelSquare_ = nullptr;
 	// ワールド変換データ
 	KamataEngine::WorldTransform worldTransform_;
+
+	effect* effect_ = nullptr;
+
+	Model2* modelEffect_ = nullptr;
+
+
 };

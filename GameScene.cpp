@@ -24,12 +24,22 @@ void GameScene::Initialize() {
 	// 3Dモデルデータの生成
 	modelSquare_ = Model2::CreateRing(20);
 	// modelSquare_ = Model2::CreateSquare(1);
+
+	modelEffect_ = Model2::CreateFromOBJ("effect", true);
+
+	effect_ = new class effect();
+	effect_->Initialize(modelEffect_, &camera_);
+
+
 }
 
 // 更新
 void GameScene::Update() {
 	// 3Dモデルを更新
 	worldTransform_.UpdateMatrix();
+
+	effect_->Update();
+
 }
 
 // 描画
@@ -41,7 +51,9 @@ void GameScene::Draw() {
 	Model2::PreDraw(dxCommon->GetCommandList());
 
 	// 3Dモデルを描画
-	modelSquare_->Draw(worldTransform_, camera_, textureHandle_);
+	//modelSquare_->Draw(worldTransform_, camera_, textureHandle_);
+
+	effect_->Draw();
 
 	// 3Dモデル描画後処理
 	Model2::PostDraw();
