@@ -5,42 +5,41 @@
 using namespace KamataEngine;
 
 class Effect {
-public: // メンバ関数
-	/// 初期化
-	// void Initialize(Model* model, Vector3 position, float rotate, float size);
-	// void Initialize(KamataEngine::Model* model, float rotate, float size);
+public:
+	// エフェクトを初期化する
 	void Initialize(Model* model, float rotate, float size, Vector3 position, Vector3 color);
-	// void Initialize(KamataEngine::Model* model);
 
-	/// 毎フレーム処理
+	// 毎フレーム更新する
 	void Update();
 
-	/// 描画
+	// エフェクトを描画する
 	void Draw(Camera& camera);
 
-	// デスフラグのgetter
+	// エフェクトが終了したか取得する
 	bool IsFinished() const { return isFinished_; }
 
 private:
-	// ワールド変換データ
+	// エフェクトのワールド変換情報
 	WorldTransform worldTransform_;
-	// モデル
+
+	// エフェクトに使用するモデル
 	Model* model_ = nullptr;
 
-	// 終了フラグ
+	// エフェクト終了フラグ
 	bool isFinished_ = false;
-	// 経過時間カウント
+
+	// エフェクト生成からの経過時間
 	float counter_ = 0.0f;
 
-	// 存続時間（消滅までの時間）<秒>
+	// エフェクトの生存時間
 	static inline const float kDuration = 0.5f;
 
-	// 色変更オブジェクト
+	// 色変更用オブジェクト
 	ObjectColor objectColor_;
-	// 色の数値
+
+	// 現在の色
 	Vector4 color_ = {};
 
-	// オリジナル要素
+	// エフェクトの移動速度
 	Vector3 velocity_ = {};
-
 };

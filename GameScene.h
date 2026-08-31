@@ -2,42 +2,72 @@
 
 #include "Effect.h"
 #include "KamataEngine.h"
+#include <list>
+#include <vector>
 
 using namespace KamataEngine;
 
-// ゲームシーン
+// シーン定義
+enum class Scene {
+	kTitle, // タイトル画面
+	kGame,  // ゲーム画面
+	kClear  // クリア画面
+};
+
 class GameScene {
 public:
-	/// <summary>
-	/// デストラクタ
-	/// </summary>
 	~GameScene();
-
-	/// <summary>
-	/// 初期化
-	/// </summary>
 	void Initialize();
-
-	/// <summary>
-	/// 更新
-	/// </summary>
 	void Update();
-
-	/// <summary>
-	/// 描画
-	/// </summary>
 	void Draw();
 
+
 private:
+	// 現在のシーン
+	Scene scene_ = Scene::kTitle;
+
 	// カメラ
 	Camera camera_;
 
-	// 3Dモデル エフェクト
+	// 3Dモデル
+	Model* modelPlayer_ = nullptr;
+	Model* modelItem_ = nullptr;
 	Model* modelEffect_ = nullptr;
+	Model* modelBlock_ = nullptr;
 
-	// エフェクト
+	// プレイヤー関連
+	WorldTransform playerTransform_;
+	Vector3 playerSize_ = {1.0f, 1.0f, 1.0f};
+
+	// プレイヤーの描画サイズ
+	Vector3 playerScale_ = {0.5f, 0.5f, 0.5f};
+
+
+	// アイテム関連
+	WorldTransform itemTransform_;
+	Vector3 itemSize_ = {1.0f, 1.0f, 1.0f};
+	bool isItemActive_ = true;
+
+	// ポインタ型の vector
+	std::vector<WorldTransform*> blockTransforms_;
+	Vector3 blockSize_ = {2.0f, 2.0f, 2.0f};
+
+	// ブロックの描画サイズ
+	Vector3 blockScale_ = {1.0f, 1.0f, 1.0f};
+
+	// エフェクトリスト
 	std::list<Effect*> effects_;
 
-	// エフェクト発生
+	// ブロックとの当たり判定と押し戻し処理（X軸用・Y軸用）
+	void ResolveBlockCollisionX(WorldTransform& playerTransform, const Vector3& playerSize, const WorldTransform& blockTransform, const Vector3& blockSize, float moveX);
+
+	void ResolveBlockCollisionY(WorldTransform& playerTransform, const Vector3& playerSize, const WorldTransform& blockTransform, const Vector3& blockSize, float moveY);
+
+
+	// 内部処理関数
 	void EffectBorn(KamataEngine::Vector3 position);
+	void EffectBornTrail(KamataEngine::Vector3 position);
+	bool CheckCollision(const WorldTransform& a, const Vector3& sizeA, const WorldTransform& b, const Vector3& sizeB);
+	void Reset();
+	void GenerateStage();
 };
