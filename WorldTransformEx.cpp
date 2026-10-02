@@ -1,5 +1,4 @@
 #include <KamataEngine.h>
-#include "../External/KamataEngine/include/3d/WorldTransform.h"
 
 using namespace KamataEngine;
 using namespace MathUtility;
