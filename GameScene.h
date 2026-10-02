@@ -39,6 +39,16 @@ private:
 	WorldTransform playerTransform_;
 	Vector3 playerSize_ = {1.0f, 1.0f, 1.0f};
 
+	// 移動速度
+	Vector3 playerVelocity_ = {0.0f, 0.0f, 0.0f};
+	// 接地フラグ
+	bool isGrounded_ = false;
+
+	// 重力加速度
+	const float kGravity_ = -0.01f;
+	// ジャンプ初速
+    const float kJumpVelocity = 0.3f;
+
 	// プレイヤーの描画サイズ
 	Vector3 playerScale_ = {0.5f, 0.5f, 0.5f};
 

@@ -196,6 +196,11 @@ void GameScene::Reset() {
 	// 設定した位置・サイズを行列に反映
 	playerTransform_.UpdateMatrix();
 
+	// プレイヤーの移動速度を初期化
+	playerVelocity_ = {0.0f, 0.0f, 0.0f};
+	isGrounded_ = false;
+	
+
 	// --------------------------------------------------------
 	// ゴールアイテムの初期化
 	// --------------------------------------------------------
@@ -263,81 +268,61 @@ void GameScene::Update() {
 		// ====================================================
 		// プレイヤーの移動量を計算
 		// ====================================================
-		Vector3 move = {0.0f, 0.0f, 0.0f};
-
-		// 1フレームあたりの基本移動速度
+		// 左右の移動（速度 X に代入）
 		float moveSpeed = 0.25f;
+		playerVelocity_.x = 0.0f; // 毎フレーム左右入力をリセット
 
-		// 左移動
 		if (input->PushKey(DIK_LEFT) || input->PushKey(DIK_A)) {
-			move.x -= moveSpeed;
+			playerVelocity_.x -= moveSpeed;
 		}
-
-		// 右移動
 		if (input->PushKey(DIK_RIGHT) || input->PushKey(DIK_D)) {
-			move.x += moveSpeed;
+			playerVelocity_.x += moveSpeed;
 		}
 
-		// 上移動
-		if (input->PushKey(DIK_UP) || input->PushKey(DIK_W)) {
-			move.y += moveSpeed;
+		// --- 重力の加算 ---
+		playerVelocity_.y += kGravity_;
+
+		// --- ジャンプ処理 ---
+		// 空中ジャンプを防ぐため、接地中（isGrounded_ == true）のみジャンプ可能
+		if (isGrounded_) {
+			if (input->TriggerKey(DIK_SPACE) || input->TriggerKey(DIK_UP) || input->PushKey(DIK_W)) {
+				playerVelocity_.y = kJumpVelocity;
+				isGrounded_ = false; // ジャンプした瞬間に空中状態へ
+			}
 		}
 
-		// 下移動
-		if (input->PushKey(DIK_DOWN) || input->PushKey(DIK_S)) {
-			move.y -= moveSpeed;
-		}
+		// フレーム開始時は一旦空中扱いにしておき、Y衝突判定で床に触れていれば true に復帰させる
+		isGrounded_ = false;
 
 		// ====================================================
 		// サブステップ処理
 		// ====================================================
-		// 1フレーム分の移動を複数回に分割して処理する。
-		//
-		// 一度に大きく移動すると、ブロックを飛び越えて
-		// すり抜ける可能性がある。
-		//
-		// そこで移動量を4分割し、
-		// 「少し移動 → 衝突判定」を4回繰り返す。
+		
 		const int kSubSteps = 4;
 
 		// 1回のサブステップで移動する量
-		Vector3 subMove = {move.x / static_cast<float>(kSubSteps), move.y / static_cast<float>(kSubSteps), 0.0f};
+		Vector3 subMove = {playerVelocity_.x / static_cast<float>(kSubSteps), playerVelocity_.y / static_cast<float>(kSubSteps), 0.0f};
 
 		// 4回に分けて移動・衝突判定を行う
 		for (int i = 0; i < kSubSteps; ++i) {
 
-			// =================================================
-			// X軸方向の移動
-			// =================================================
+			// X軸移動と衝突判定
 			if (subMove.x != 0.0f) {
-
-				// プレイヤーをX方向へ少し移動
 				playerTransform_.translation_.x += subMove.x;
-
-				// 移動後の座標を行列へ反映
 				playerTransform_.UpdateMatrix();
 
-				// 全てのブロックとX方向の衝突判定
 				for (WorldTransform* block : blockTransforms_) {
-
 					ResolveBlockCollisionX(playerTransform_, playerSize_, *block, blockSize_, subMove.x);
 				}
 			}
 
-			// =================================================
-			// Y軸方向の移動
-			// =================================================
+			// Y軸移動と衝突判定
 			if (subMove.y != 0.0f) {
-
-				// プレイヤーをY方向へ少し移動
 				playerTransform_.translation_.y += subMove.y;
-
-				// 移動後の座標を行列へ反映
 				playerTransform_.UpdateMatrix();
 
-				// 全てのブロックとY方向の衝突判定
 				for (WorldTransform* block : blockTransforms_) {
-
+					// ※ResolveBlockCollisionYの引数や処理を少し調整（後述）
 					ResolveBlockCollisionY(playerTransform_, playerSize_, *block, blockSize_, subMove.y);
 				}
 			}
@@ -347,7 +332,7 @@ void GameScene::Update() {
 		// 移動中の軌跡エフェクト
 		// ====================================================
 		// XまたはY方向に移動している場合のみ生成する。
-		if (move.x != 0.0f || move.y != 0.0f) {
+		if (playerVelocity_.x != 0.0f || playerVelocity_.y != 0.0f) {
 
 			EffectBornTrail(playerTransform_.translation_);
 		}
@@ -392,16 +377,7 @@ void GameScene::Update() {
 	// ========================================================
 	// カメラのプレイヤー追従
 	// ========================================================
-	// プレイヤーの位置を基準にカメラを移動させる。
-	//
-	// X方向：
-	// プレイヤーのX座標に合わせる
-	//
-	// Y方向：
-	// プレイヤーより3.0f上に配置
-	//
-	// Z方向：
-	// プレイヤーより25.0f後ろに配置
+	
 	Vector3 cameraOffset = {0.0f, 3.0f, -25.0f};
 
 	// プレイヤーの位置 + カメラのオフセット
@@ -694,82 +670,40 @@ void GameScene::ResolveBlockCollisionX(WorldTransform& playerTransform, const Ve
 // といった状態を防ぐ。
 void GameScene::ResolveBlockCollisionY(WorldTransform& playerTransform, const Vector3& playerSize, const WorldTransform& blockTransform, const Vector3& blockSize, float moveY) {
 
-	// --------------------------------------------------------
-	// 衝突判定の誤差を防ぐための余白
-	// --------------------------------------------------------
-	constexpr float kEpsilon = 0.1f;
+	constexpr float kEpsilon = 0.001f; // めり込み防止の余白（※小さめに調整すると引っかかりにくいです）
 
-	// --------------------------------------------------------
-	// プレイヤーとブロックの半分のサイズを計算
-	// --------------------------------------------------------
 	const float playerHalfX = playerSize.x * 0.5f;
 	const float playerHalfY = playerSize.y * 0.5f;
-
 	const float blockHalfX = blockSize.x * 0.5f;
 	const float blockHalfY = blockSize.y * 0.5f;
 
-	// --------------------------------------------------------
-	// プレイヤーの境界座標を計算
-	// --------------------------------------------------------
 	const float playerMinX = playerTransform.translation_.x - playerHalfX;
-
 	const float playerMaxX = playerTransform.translation_.x + playerHalfX;
-
 	const float playerMinY = playerTransform.translation_.y - playerHalfY;
-
 	const float playerMaxY = playerTransform.translation_.y + playerHalfY;
 
-	// --------------------------------------------------------
-	// ブロックの境界座標を計算
-	// --------------------------------------------------------
 	const float blockMinX = blockTransform.translation_.x - blockHalfX;
-
 	const float blockMaxX = blockTransform.translation_.x + blockHalfX;
-
 	const float blockMinY = blockTransform.translation_.y - blockHalfY;
-
 	const float blockMaxY = blockTransform.translation_.y + blockHalfY;
 
-	// --------------------------------------------------------
-	// X方向の重なりを確認
-	// --------------------------------------------------------
-	// プレイヤーとブロックが左右方向に重なっていない場合、
-	// 上下からの衝突は発生しない。
-	if (playerMaxX <= blockMinX || playerMinX >= blockMaxX) {
+	// 重なりがない場合はスルー
+	if (playerMaxX <= blockMinX || playerMinX >= blockMaxX)
 		return;
-	}
-
-	// --------------------------------------------------------
-	// Y方向の重なりを確認
-	// --------------------------------------------------------
-	// プレイヤーとブロックが上下方向に重なっていない場合、
-	// 衝突していないので処理を終了する。
-	if (playerMaxY <= blockMinY || playerMinY >= blockMaxY) {
+	if (playerMaxY <= blockMinY || playerMinY >= blockMaxY)
 		return;
-	}
 
-	// ========================================================
-	// Y方向の押し戻し
-	// ========================================================
-
-	// --------------------------------------------------------
-	// 上方向へ移動してブロックに衝突した場合
-	// --------------------------------------------------------
-	// プレイヤーをブロックの下側まで戻す。
+	// Y方向の押し戻し処理
 	if (moveY > 0.0f) {
-
+		// 上昇中に天井にヒット
 		playerTransform.translation_.y = blockMinY - playerHalfY - kEpsilon;
-	}
-
-	// --------------------------------------------------------
-	// 下方向へ移動してブロックに衝突した場合
-	// --------------------------------------------------------
-	// プレイヤーをブロックの上側まで戻す。
-	else if (moveY < 0.0f) {
-
+		playerVelocity_.y = 0.0f; // 天井にぶつかったら上昇速度をリセット
+	} else if (moveY < 0.0f) {
+		// 落下中に床に着地
 		playerTransform.translation_.y = blockMaxY + playerHalfY + kEpsilon;
+		playerVelocity_.y = 0.0f; // 落下速度をリセット
+		isGrounded_ = true;       // 接地状態にする
 	}
 
-	// 押し戻した位置を行列へ反映
 	playerTransform.UpdateMatrix();
 }
